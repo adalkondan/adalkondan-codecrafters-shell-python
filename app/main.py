@@ -17,6 +17,8 @@ def main():
             echo(messag)
         elif command[0]=="exit" and len(command)>1 and command[1:] == "0":
             break
+        elif command[0]=="exit":
+            break
         else:
           print(f"{user_input}: command not found")
         
