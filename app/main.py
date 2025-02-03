@@ -18,7 +18,7 @@ def main():
         elif command[0]=="exit" and len(command)>1 and command[1:] == "0":
             break
         else:
-          print(f"{command[0:]}: command not found")
+          print(f"{user_input}: command not found")
         
 
 
