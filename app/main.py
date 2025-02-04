@@ -21,7 +21,7 @@ def main():
             return
         executable_path = find_executable(messag[0])
         if executable_path:
-            print(f"{messag[0]} is {messag[0]}")
+            print(f"{messag[0]} is {executable_path}")
         else:
             print(f"{messag[0]}: not found")
 
