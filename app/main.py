@@ -10,7 +10,7 @@ def main():
     def type(messag):
         builtins = ['echo', 'exit', 'type']
         if messag[0] in builtins:
-            print(f"{messag[0]} is a shell built-in")
+            print(f"{messag[0]} is a shell builtin")
         else:
             print(f"{messag[0]}: command not found")
     while(True):
