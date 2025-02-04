@@ -15,7 +15,7 @@ def main():
         return print(" ".join(messag))
 
     def type(messag):
-        builtins = ['echo', 'exit', 'type']
+        builtins = ['echo', 'exit', 'type','pwd']
         if messag[0] in builtins:
             print(f"{messag[0]} is a shell builtin")
             return
@@ -39,6 +39,14 @@ def main():
             break
         elif user_input == "type":
             type(messag)
+        elif user_input == "cd":
+            try:
+                os.chdir(messag[0])
+            except FileNotFoundError:
+                print(f"cd: {messag[0]}: No such file or directory")
+        elif user_input == "pwd":
+            type(messag)
+            # print(os.getcwd())
         else:
             executable_path = find_executable(user_input)
             if executable_path:
