@@ -12,7 +12,7 @@ def main():
         return None
 
     def echo(messag):
-        print(" ".join(f"'{word}'" for word in messag))
+        print(" ".join(messag))
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
