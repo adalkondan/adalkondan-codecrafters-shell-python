@@ -21,7 +21,7 @@ def main():
         messag = command[1:]
         if command[0]=="echo":
             echo(messag)
-        elif command =="exit 0":
+        elif command[0] == "exit" and len(command) > 1 and command[1:] == "0":
             break
         elif command[0]=="type":
             type(messag)
