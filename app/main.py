@@ -12,13 +12,13 @@ def main():
         return None
 
     def echo(messag):
-        messag = [item.replace("'", '') for item in messag]
-        # procesmsg =[]
-        # for i in range(len(messag)): 
-        #     if i.startswith("'") and i.endswith("'"):
-        #         m = m[1:-1]
-        #     procesmsg.append(i)
-        print(" ".join(messag))    
+        # messag = [item.replace("'", '') for item in messag]
+        procesmsg =[]
+        for m in messag: 
+            if m.startswith("'") and m.endswith("'"):
+                m = m[1:-1]
+            procesmsg.append(m)
+        print(" ".join(procesmsg))    
         
 
     def type(messag):
