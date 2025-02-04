@@ -43,7 +43,7 @@ def main():
             executable_path = find_executable(user_input)
             if executable_path:
                 try:
-                    subprocess.run([user_input] + messag,executable=executable_path capture_output=False, text=True)
+                    subprocess.run([user_input] + messag,executable=executable_path, capture_output=False, text=True)
                 except subprocess.CalledProcessError:
                     print(f"Error executing {user_input}")
             else:
