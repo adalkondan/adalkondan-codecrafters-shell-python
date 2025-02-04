@@ -25,7 +25,7 @@ def main():
         else:
             print(f"{messag[0]}: not found")
     def cd(messag):
-        if not messag:
+        if messag == "~":
             os.chdir(os.path.expanduser("~"))
             return
         try:
