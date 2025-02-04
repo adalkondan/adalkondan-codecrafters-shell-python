@@ -4,9 +4,15 @@ import sys
 def main():
     # Uncomment this block to pass the first stage
     #sys.stdout.write("$ ")
-    def echo(message):
-        return print(" ".join(message))
-    # Wait for user input
+    def echo(messag):
+        return print(" ".join(messag))
+    # Wait for user input\
+    def type(messag):
+        builtins = ['echo', 'exit', 'type']
+        if messag[1:] in builtins:
+            print(f"{messag[1:]} is a shell built-in")
+        else:
+            print(f"{messag[1:]}: command not found")
     while(True):
         
         sys.stdout.write("$ ")
@@ -17,8 +23,8 @@ def main():
             echo(messag)
         elif command[0]=="exit" and len(command)>1 and command[1:] == "0":
             break
-        elif command[0]=="exit":
-            break
+        elif command[0]=="type":
+            type(messag)
         else:
           print(f"{user_input}: command not found")
         
