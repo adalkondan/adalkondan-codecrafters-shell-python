@@ -44,10 +44,8 @@ def main():
           executable_path = find_executable(user_input)
           if executable_path:
             try:
-                # Run the external command with its arguments
-                result = subprocess.run([user_input]+messag, capture_output=False,text=True)
+                result = subprocess.run([executable_path]+messag, capture_output=False,text=True)
             except subprocess.CalledProcessError:
-                # Handle error if command execution fails
                 print(f"Error executing {user_input}")
             else:
                 print(f"{user_input}: command not found")
