@@ -24,6 +24,18 @@ def main():
             print(f"{messag[0]} is {executable_path}")
         else:
             print(f"{messag[0]}: not found")
+    def cd(messag):
+        if not messag:
+            os.chdir(os.path.expanduser("~"))
+            return
+        try:
+            os.chdir(messag[0])
+        except FileNotFoundError:
+            print(f"cd: {messag[0]}: No such file or directory")
+        except NotADirectoryError:
+            print(f"cd: {messag[0]}: Not a directory")
+        except PermissionError:
+            print(f"cd: {messag[0]}: Permission denied")
 
     while True:
         sys.stdout.write("$ ")
@@ -40,10 +52,7 @@ def main():
         elif user_input == "type":
             type(messag)
         elif user_input == "cd":
-            try:
-                os.chdir(messag[0])
-            except FileNotFoundError:
-                print(f"cd: {messag[0]}: No such file or directory")
+            cd(messag)
         elif user_input == "pwd":
             print(os.getcwd())
         else:
