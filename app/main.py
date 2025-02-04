@@ -12,7 +12,8 @@ def main():
         return None
 
     def echo(messag):
-        messag = " ".join(messag)
+        if isinstance(messag, list):
+            messag = " ".join(messag)
         if messag.startswith("'") and messag.endswith("'"):
             messag = messag[1:-1]
         print(messag)
