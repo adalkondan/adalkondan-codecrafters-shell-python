@@ -13,10 +13,10 @@ def main():
 
     def echo(messag):
         procesmsg =[]
-        for m in messag: 
-            if m.startswith("'") and m.endswith("'"):
+        for i in range(len(messag)): 
+            if i.startswith("'") and i.endswith("'"):
                 m = m[1:-1]
-            procesmsg.append(m)
+            procesmsg.append(i)
         print(" ".join(procesmsg))
     
         
