@@ -31,11 +31,11 @@ def main():
                 escaped = True
             elif char == "'":
                 in_single_quotes = not in_single_quotes
-            elif in_single_quotes:
-                if char != "'":
-                    cleaned_command += char
-            # elif char == " " and not in_single_quotes:
-            #     cleaned_command += "\n"
+            # elif in_single_quotes:
+            #     if char != "'":
+            #         cleaned_command += char
+            elif char == " " and not in_single_quotes:
+                 cleaned_command += "\n"
             else:
                 cleaned_command += char
 
