@@ -21,7 +21,7 @@ def main():
             return
         executable_path = find_executable(messag[0])
         if executable_path:
-            print(f"{messag[0]} is {executable_path}")
+            print(f"{messag[0]} is {messag[0]}")
         else:
             print(f"{messag[0]}: not found")
 
@@ -45,8 +45,7 @@ def main():
             except FileNotFoundError:
                 print(f"cd: {messag[0]}: No such file or directory")
         elif user_input == "pwd":
-            type(messag)
-            # print(os.getcwd())
+            print(os.getcwd())
         else:
             executable_path = find_executable(user_input)
             if executable_path:
