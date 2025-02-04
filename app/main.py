@@ -25,17 +25,17 @@ def main():
         else:
             print(f"{messag[0]}: not found")
     def cd(messag):
-        if messag == "~":
+        if messag [0] == "~":
             os.chdir(os.path.expanduser("~"))
             return
         try:
             os.chdir(messag[0])
         except FileNotFoundError:
             print(f"cd: {messag[0]}: No such file or directory")
-        except NotADirectoryError:
-            print(f"cd: {messag[0]}: Not a directory")
-        except PermissionError:
-            print(f"cd: {messag[0]}: Permission denied")
+        # except NotADirectoryError:
+        #     print(f"cd: {messag[0]}: Not a directory")
+        # except PermissionError:
+        #     print(f"cd: {messag[0]}: Permission denied")
 
     while True:
         sys.stdout.write("$ ")
