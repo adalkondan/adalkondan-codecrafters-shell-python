@@ -12,9 +12,9 @@ def main():
         return None
 
     def echo(messag):
+        messag = " ".join(messag)
         if messag.startswith("'") and messag.endswith("'"):
             messag = messag[1:-1]
-            return
         print(messag)
 
     def type(messag):
