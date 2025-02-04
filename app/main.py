@@ -25,17 +25,19 @@ def main():
 
         for char in " ".join(messag):
             if escaped:
-                cleaned_command += char  # Literal character after escape
+                cleaned_command += char
                 escaped = False
-            elif char == '\\':
-                escaped = True  # Next character is literal
+            elif char == "\\":
+                escaped = True
             elif char == "'":
-                in_single_quotes = not in_single_quotes  # Toggle single quotes
+                in_single_quotes = not in_single_quotes
             elif in_single_quotes:
-                if char != "'": # handles multiple single quotes
-                    cleaned_command += char  # Characters inside single quotes (without quotes)
+                if char != "'":
+                    cleaned_command += char
+            # elif char == " " and not in_single_quotes:
+            #     cleaned_command += "\n"
             else:
-                cleaned_command += char  # Characters outside single quotes
+                cleaned_command += char
 
         print(cleaned_command)
         
