@@ -21,7 +21,7 @@ def main():
         messag = command[1:]
         if command[0]=="echo":
             echo(messag)
-        elif command[0:] == "exit":
+        elif user_input== "exit":
             break
         elif command[0]=="type":
             type(messag)
