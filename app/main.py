@@ -12,7 +12,7 @@ def main():
         if messag[0] in builtins:
             print(f"{messag[0]} is a shell builtin")
         else:
-            print(f"{messag[0]}: command not found")
+            print(f"{messag[0]}: not found")
     while(True):
         
         sys.stdout.write("$ ")
