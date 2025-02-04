@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 
 
 def main():
@@ -40,8 +41,17 @@ def main():
         elif command[0]=="type":
             type(messag)
         else:
-          print(f"{user_input}: command not found")
-        
+          executable_path = find_executable(user_input)
+          if executable_path:
+            try:
+                # Run the external command with its arguments
+                subprocess.run([executable_path] + messag, check=True)
+            except subprocess.CalledProcessError:
+                # Handle error if command execution fails
+                print(f"Error executing {user_input}")
+            else:
+                print(f"{user_input}: command not found")
+    
 
 
 if __name__ == "__main__":
