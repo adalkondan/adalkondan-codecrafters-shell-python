@@ -13,12 +13,31 @@ def main():
 
     def echo(messag):
         # messag = [item.replace("'", '') for item in messag]
-        procesmsg =[]
-        for m in messag: 
-            if m.startswith("'") and m.endswith("'"):
-                m = m[1:-1]
-            procesmsg.append(m)
-        print(" ".join(procesmsg))    
+        # procesmsg =[]
+        # for m in messag: 
+        #     if m.startswith("'") and m.endswith("'"):
+        #         m = m[1:-1]
+        #     procesmsg.append(m)
+        # print(" ".join(procesmsg))    
+        cleaned_command = ""
+        in_single_quotes = False
+        escaped = False
+
+        for char in " ".join(messag):
+            if escaped:
+                cleaned_command += char  # Literal character after escape
+                escaped = False
+            elif char == '\\':
+                escaped = True  # Next character is literal
+            elif char == "'":
+                in_single_quotes = not in_single_quotes  # Toggle single quotes
+            elif in_single_quotes:
+                if char != "'": # handles multiple single quotes
+                    cleaned_command += char  # Characters inside single quotes (without quotes)
+            else:
+                cleaned_command += char  # Characters outside single quotes
+
+        print(cleaned_command)
         
 
     def type(messag):
