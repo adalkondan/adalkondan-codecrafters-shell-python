@@ -9,10 +9,10 @@ def main():
     # Wait for user input\
     def type(messag):
         builtins = ['echo', 'exit', 'type']
-        if messag[1:] in builtins:
-            print(f"{messag[1:]} is a shell built-in")
+        if messag[0] in builtins:
+            print(f"{messag[0]} is a shell built-in")
         else:
-            print(f"{messag[1:]}: command not found")
+            print(f"{messag[0]}: command not found")
     while(True):
         
         sys.stdout.write("$ ")
