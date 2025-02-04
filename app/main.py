@@ -11,23 +11,14 @@ def main():
                 return executable_path
         return None
 
-    # def echo(messag):
-    #     procesmsg =[]
-    #     for m in messag: 
-    #         if m.startswith("'") and m.endswith("'"):
-    #             m = m[1:-1]
-    #             procesmsg.append(m)
-    #     print(" ".join(procesmsg))
-    def echo(args):
-        processed_msg = []
-        
-        for m in args:
-            # Remove single quotes only if they surround the entire argument
+    def echo(messag):
+        procesmsg =[]
+        for m in messag: 
             if m.startswith("'") and m.endswith("'"):
                 m = m[1:-1]
-            processed_msg.append(m)  # Keep everything else unchanged
-
-        print(" ".join(processed_msg))
+            procesmsg.append(m)
+        print(" ".join(procesmsg))
+    
         
 
     def type(messag):
