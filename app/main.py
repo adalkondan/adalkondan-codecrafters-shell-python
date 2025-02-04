@@ -45,7 +45,7 @@ def main():
           if executable_path:
             try:
                 # Run the external command with its arguments
-                subprocess.run([executable_path] + messag, check=True)
+                subprocess.run(messag, check=True)
             except subprocess.CalledProcessError:
                 # Handle error if command execution fails
                 print(f"Error executing {user_input}")
