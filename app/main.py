@@ -45,9 +45,7 @@ def main():
           if executable_path:
             try:
                 # Run the external command with its arguments
-                env = os.environ.copy()
-                env['_'] = user_input
-                result = subprocess.run([executable_path]+messag,env=env, capture_output=False,text=True)
+                result = subprocess.run([user_input]+messag,env=env, capture_output=False,text=True)
             except subprocess.CalledProcessError:
                 # Handle error if command execution fails
                 print(f"Error executing {user_input}")
