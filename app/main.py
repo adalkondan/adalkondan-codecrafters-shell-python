@@ -43,6 +43,17 @@ def main():
         #     print(f"cd: {messag[0]}: Not a directory")
         # except PermissionError:
         #     print(f"cd: {messag[0]}: Permission denied")
+    def cat(messag):
+        for file_path in messag:
+            try:
+                with open(file_path, "r") as file:
+                    print(file.read())
+            except FileNotFoundError:
+                print(f"cat: {file_path}: No such file or directory")
+            except IsADirectoryError:
+                print(f"cat: {file_path}: Is a directory")
+            except PermissionError:
+                print(f"cat: {file_path}: Permission denied")
 
     while True:
         sys.stdout.write("$ ")
@@ -63,15 +74,7 @@ def main():
         elif user_input == "pwd":
             print(os.getcwd())
         elif user_input == "cat":
-            try:
-                with open(messag[0], "r") as file:
-                    print(file.read())
-            except FileNotFoundError:
-                print(f"cat: {messag[0]}: No such file or directory")
-            except IsADirectoryError:
-                print(f"cat: {messag[0]}: Is a directory")
-            except PermissionError:
-                print(f"cat: {messag[0]}: Permission denied")
+            cat(messag)
         else:
             executable_path = find_executable(user_input)
             if executable_path:
