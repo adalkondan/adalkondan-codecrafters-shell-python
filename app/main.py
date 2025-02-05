@@ -14,7 +14,7 @@ def main():
 
     def echo(messag):
         cleaned_msg = [msg.strip('"') for msg in messag]
-        return print(cleaned_msg)
+        print(" ".join(cleaned_msg))
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
