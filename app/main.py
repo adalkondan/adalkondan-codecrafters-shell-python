@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import re
 
 
 def main():
@@ -13,8 +14,11 @@ def main():
         return None
 
     def echo(messag):
-        cleaned_msg = [msg.strip("'") for msg in messag]
-        print(" ".join(cleaned_msg))
+        content=messag.strip()
+
+        match =re.match(r"^'(.*)'$", content)
+        if match:
+            return print(match.group(1))
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
