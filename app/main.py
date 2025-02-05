@@ -1,6 +1,8 @@
 import sys
 import os
 import subprocess
+import re
+import shlex
 
 
 def main():
@@ -13,9 +15,11 @@ def main():
         return None
 
     def echo(messag):
-        cleaned_msg1 = [msg.replace("'","") for msg in messag]
-        cleaned_msg = [msg.replace('"','') for msg in cleaned_msg1]
-        print(" ".join(cleaned_msg))
+        cleaned_msg = []
+        for word in messag:
+            cleaned_msg.append(re.sub(r"'([^']*)'", r"\1", word))
+        cleaned_msg = " ".join(cleaned_msg).replace("'", "")
+        print(cleaned_msg)
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
@@ -43,7 +47,7 @@ def main():
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
-        command = input().split()
+        command = shlex.split(input())
         if not command:
             continue
         user_input = command[0]
