@@ -50,16 +50,20 @@ def main():
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
         for file_path in messag:
-            processed_path = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'"), file_path)
-            try:
-                with open(processed_path, "r") as file:
-                    print(file.read())
-            except FileNotFoundError:
-                print(f"cat: {processed_path}: No such file or directory")
-            except IsADirectoryError:
-                print(f"cat: {processed_path}: Is a directory")
-            except PermissionError:
-                print(f"cat: {processed_path}: Permission denied")
+            for file_path in messag:
+                processed_path = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: bytes((m.group(1)).replace("\\\\", "\\"), "utf-8").decode("unicode_escape", "ignore"), file_path)
+                # Normalize the path for the operating system
+                processed_path = os.path.normpath(processed_path)
+
+                try:
+                    with open(processed_path, "r") as file:
+                        print(file.read())
+                except FileNotFoundError:
+                    print(f"cat: {processed_path}: No such file or directory")
+                except IsADirectoryError:
+                    print(f"cat: {processed_path}: Is a directory")
+                except PermissionError:
+                    print(f"cat: {processed_path}: Permission denied")
 
     while True:
         sys.stdout.write("$ ")
