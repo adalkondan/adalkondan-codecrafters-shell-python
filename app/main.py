@@ -1,7 +1,6 @@
 import sys
 import os
 import subprocess
-import re
 
 
 def main():
@@ -14,9 +13,9 @@ def main():
         return None
 
     def echo(messag):
-        match =re.match(r"^'(.*)'$", messag)
-        if match:
-            return print(match.group(1))
+        cleaned_msg1 = [msg.replace("'","") for msg in messag]
+        cleaned_msg = [msg.replace('"','') for msg in cleaned_msg1]
+        print(" ".join(cleaned_msg))
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
