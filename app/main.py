@@ -19,7 +19,7 @@ def main():
         for word in messag:
           # cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
           # cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
-          cleaned_word = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'"), word)
+          cleaned_word = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'").replace(" ",""), word)  
           # cleaned_word = re.sub(r"'([^']*)'|\"([^']*)\"", lambda m: m.group(1) if m.group(1) is not None else m.group(2).replace("\\\\", "\\").replace('\\"', '"'), word)
           # Append the cleaned word  
           cleaned_msg.append(cleaned_word)
@@ -49,26 +49,33 @@ def main():
         # except PermissionError:
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
+        # message = shlex.split(messag, posix=True)
         for file_path in messag:
-            for file_path in messag:
-                processed_path = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: bytes((m.group(1)).replace("\\\\", "\\"), "utf-8").decode("unicode_escape", "ignore"), file_path)
-                # Normalize the path for the operating system
-                processed_path = os.path.normpath(processed_path)
+            file_path_parts = shlex.split(file_path, posix=True) 
+        
+            # Rejoin the parts to form a single file path string
+            processed_path = " ".join(file_path_parts) 
+            # processed_path = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: bytes((m.group(1)).replace("\\\\", "\\").replace(""), "utf-8").decode("unicode_escape", "ignore"), file_path)
+            # Normalize the path for the operating system
+            processed_path = re.sub(r"'([^']*)'", lambda m: bytes((m.group(1)).replace("\\\\", "\\"), "utf-8").decode("unicode_escape", "ignore"), processed_path)
+            # processed_path = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: m.group(1) if m.group(1) else m.group(2), file_path)
+            processed_path = os.path.normpath(processed_path)
 
-                try:
-                    with open(processed_path, "r") as file:
-                        print(file.read())
-                except FileNotFoundError:
-                    print(f"cat: {processed_path}: No such file or directory")
-                except IsADirectoryError:
-                    print(f"cat: {processed_path}: Is a directory")
-                except PermissionError:
-                    print(f"cat: {processed_path}: Permission denied")
+            try:
+                with open(processed_path, "r") as file:
+                    print(file.read())
+            except FileNotFoundError:
+                print(f"cat: {processed_path}: No such file or directory")
+            except IsADirectoryError:
+                print(f"cat: {processed_path}: Is a directory")
+            except PermissionError:
+                print(f"cat: {processed_path}: Permission denied")
 
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
-        command = shlex.split(input())
+        command = input().strip()
+        command = shlex.split(command, posix=True)
         if not command:
             continue
         user_input = command[0]
