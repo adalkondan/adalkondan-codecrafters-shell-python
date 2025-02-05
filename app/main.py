@@ -13,7 +13,7 @@ def main():
         return None
 
     def echo(messag):
-        leaned_command = ""
+        cleaned_command = ""
         in_single_quotes = False
         escaped = False
 
