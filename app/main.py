@@ -17,7 +17,7 @@ def main():
         in_single_quotes = False
         escaped = False
 
-        for char in command:
+        for char in messag:
             if escaped:
                 cleaned_command += char
                 escaped = False
