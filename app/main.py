@@ -18,7 +18,7 @@ def main():
                 cleaned_msg = msg[1:-1]
             else:
                 cleaned_msg = msg
-        return print(cleaned_msg, end=" ")
+        return print(cleaned_msg)
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
