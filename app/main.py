@@ -47,7 +47,7 @@ def main():
         for file_path in messag:
             try:
                 with open(file_path, "r") as file:
-                    print(file.read())
+                    print(file.read(),end='')
             except FileNotFoundError:
                 print(f"cat: {file_path}: No such file or directory")
             except IsADirectoryError:
