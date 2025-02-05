@@ -13,7 +13,7 @@ def main():
         return None
 
     def echo(messag):
-        cleaned_msg = [msg.strip('"') for msg in messag]
+        cleaned_msg = [msg.strip("'") for msg in messag]
         print(" ".join(cleaned_msg))
 
     def type(messag):
