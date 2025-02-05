@@ -12,26 +12,14 @@ def main():
         return None
 
     def echo(messag):
-        cleaned_command = ""
-        in_single_quotes = False
-        escaped = False
-
-        for char in command:
-            if escaped:
-                cleaned_command += char
-                escaped = False
-            elif char == '\\':
-                escaped = True
-            elif char == "'":
-                in_single_quotes = not in_single_quotes
-            elif in_single_quotes:
-                if char != "'":
-                    cleaned_command += char
-            else:  # Outside single quotes, append ALL characters as they are
-                cleaned_command += char
-
-        print(cleaned_command)
-     
+        processed = []
+        for s in messag:
+            if s.startswith("'") and s.endswith("'"):
+                processed.append(s[1:-1])
+            else:
+                processed.append(s)
+        print(" ".join(processed))
+        
         
 
     def type(messag):
