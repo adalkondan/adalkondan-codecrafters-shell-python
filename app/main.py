@@ -1,7 +1,6 @@
 import sys
 import os
 import subprocess
-import shlex
 
 def main():
     def find_executable(executable):
@@ -13,18 +12,25 @@ def main():
         return None
 
     def echo(messag):
-        try:
-        # Use shlex to correctly parse the command, handling quotes and spaces
-            parsed_command = shlex.split(command)
+        cleaned_command = ""
+        in_single_quotes = False
+        escaped = False
 
-            # Remove single quotes from each item
-            cleaned_command = [item.replace("'", "") for item in parsed_command]
+        for char in command:
+            if escaped:
+                cleaned_command += char
+                escaped = False
+            elif char == '\\':
+                escaped = True
+            elif char == "'":
+                in_single_quotes = not in_single_quotes
+            elif in_single_quotes:
+                if char != "'":
+                    cleaned_command += char
+            else:  # Outside single quotes, append ALL characters as they are
+                cleaned_command += char
 
-            # Join the cleaned items back into a string, preserving spaces
-            print(*cleaned_command)  # * unpacks the list for print to add spaces
-
-        except ValueError as e:
-            print(f"Error: {e}")
+        print(cleaned_command)
      
         
 
