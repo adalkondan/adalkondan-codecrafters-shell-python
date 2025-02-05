@@ -13,11 +13,7 @@ def main():
         return None
 
     def echo(messag):
-        for msg in messag:
-            if msg.startswith("'") and msg.endswith("'"):
-                cleaned_msg = msg[:-1]
-            else:
-                cleaned_msg = msg
+        cleaned_msg = [msg.strip('"') for msg in messag]
         return print(cleaned_msg)
 
     def type(messag):
