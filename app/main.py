@@ -19,7 +19,8 @@ def main():
         for word in messag:
           # cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
           # cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
-          cleaned_word = re.sub(r"'([^']*)'|\"([^']*)\"", lambda m: m.group(1) if m.group(1) is not None else m.group(2).replace("\\\\", "\\").replace('\\"', '"'), word)
+          cleaned_word = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'"), word)
+          # cleaned_word = re.sub(r"'([^']*)'|\"([^']*)\"", lambda m: m.group(1) if m.group(1) is not None else m.group(2).replace("\\\\", "\\").replace('\\"', '"'), word)
           # Append the cleaned word  
           cleaned_msg.append(cleaned_word)
         
