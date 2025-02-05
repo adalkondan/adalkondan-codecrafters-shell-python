@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import shlex
 
 def main():
     def find_executable(executable):
@@ -12,15 +13,16 @@ def main():
         return None
 
     def echo(messag):
-        processed = []
-        for s in messag:
-            if s.startswith("'") and s.endswith("'"):
-                processed.append(s[1:-1])
-            else:
-                processed.append(s)
-        print(" ".join(processed))
+        # Use shlex to correctly handle quoting and splitting
+        lexer = shlex.shlex(messag, posix=True) # posix=True ensures single quotes are handled correctly
+        lexer.whitespace_split = True # Splits on whitespace outside quotes
         
-        
+        # Reconstruct the output, preserving whitespace inside quotes
+        output_parts = []
+        for token in lexer:
+            output_parts.append(token)
+
+        print(" ".join(output_parts))
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
