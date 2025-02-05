@@ -17,8 +17,9 @@ def main():
     def echo(messag):
         cleaned_msg = []
         for word in messag:
-          cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
-          cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
+          # cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
+          # cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
+          cleaned_word = re.sub(r"'([^']*)'|\"([^']*)\"", lambda m: m.group(1) if m.group(1) is not None else m.group(2).replace("\\\\", "\\").replace('\\"', '"'), word)
           # Append the cleaned word  
           cleaned_msg.append(cleaned_word)
         
@@ -48,15 +49,16 @@ def main():
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
         for file_path in messag:
+            processed_path = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'"), file_path)
             try:
-                with open(file_path, "r") as file:
-                    print(file.read(),end='')
+                with open(processed_path, "r") as file:
+                    print(file.read())
             except FileNotFoundError:
-                print(f"cat: {file_path}: No such file or directory")
+                print(f"cat: {processed_path}: No such file or directory")
             except IsADirectoryError:
-                print(f"cat: {file_path}: Is a directory")
+                print(f"cat: {processed_path}: Is a directory")
             except PermissionError:
-                print(f"cat: {file_path}: Permission denied")
+                print(f"cat: {processed_path}: Permission denied")
 
     while True:
         sys.stdout.write("$ ")
