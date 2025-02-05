@@ -15,7 +15,7 @@ def main():
     def echo(messag):
         for msg in messag:
             if msg.startswith("'") and msg.endswith("'"):
-                cleaned_msg = msg[1:-1]
+                cleaned_msg = msg[:-1]
             else:
                 cleaned_msg = msg
         return print(cleaned_msg)
