@@ -14,9 +14,7 @@ def main():
         return None
 
     def echo(messag):
-        content=messag.strip()
-
-        match =re.match(r"^'(.*)'$", content)
+        match =re.match(r"^'(.*)'$", messag)
         if match:
             return print(match.group(1))
 
