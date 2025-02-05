@@ -1,7 +1,7 @@
 import sys
 import os
 import subprocess
-import shlex
+
 
 def main():
     def find_executable(executable):
@@ -13,16 +13,25 @@ def main():
         return None
 
     def echo(messag):
-        # Use shlex to correctly handle quoting and splitting
-        lexer = shlex.shlex(messag, posix=True) # posix=True ensures single quotes are handled correctly
-        lexer.whitespace_split = True # Splits on whitespace outside quotes
-        
-        # Reconstruct the output, preserving whitespace inside quotes
-        output_parts = []
-        for token in lexer:
-            output_parts.append(token)
+        cleaned_command = ""
+        in_single_quotes = False
+        escaped = False
 
-        print(" ".join(output_parts))
+        for char in messag:
+            if escaped:
+                cleaned_command += char  # Literal character after escape
+                escaped = False
+            elif char == '\\':
+                escaped = True  # Next character is literal
+            elif char == "'":
+                in_single_quotes = not in_single_quotes  # Toggle single quotes
+            elif in_single_quotes:
+                if char != "'": # handles multiple single quotes
+                    cleaned_command += char  # Characters inside single quotes (without quotes)
+            else:
+                cleaned_command += char  # Characters outside single quotes
+
+        print(cleaned_command)
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
