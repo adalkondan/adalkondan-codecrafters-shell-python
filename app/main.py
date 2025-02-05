@@ -17,9 +17,12 @@ def main():
     def echo(messag):
         cleaned_msg = []
         for word in messag:
-            cleaned_msg.append(re.sub(r"'([^']*)'", r"\1", word))
-        cleaned_msg = " ".join(cleaned_msg).replace("'", "")
-        print(cleaned_msg)
+          cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
+          cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
+          # Append the cleaned word  
+          cleaned_msg.append(cleaned_word)
+        
+        print(" ".join(cleaned_msg))
 
     def type(messag):
         builtins = ['echo', 'exit', 'type','pwd']
