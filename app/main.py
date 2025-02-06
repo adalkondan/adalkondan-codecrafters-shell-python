@@ -49,33 +49,13 @@ def main():
         # except PermissionError:
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
+            for file_p in messag:
             try:
-              contents = []
-              for file_path in messag:
-                  # Remove only the outermost single quotes from the file path
-                  processed_path = file_path.strip("'").replace("/'","/")  # Remove single quotes from the start and end
-                  if not processed_path:
-                      print(f"cat: {file_path}: Invalid file path")
-                      continue
-                  
-                  # Check if the file exists
-                  try:
-                      with open(processed_path, 'r') as file:
-                          content = file.read()
-                          contents.append(content)
-                  except FileNotFoundError:
-                      print(f"cat: {processed_path}: No such file or directory")
-                      continue
-                  except Exception as e:
-                      print(f"Error reading {processed_path}: {e}")
-                      continue
-              
-              # Print all contents without modifying the original text formatting
-              print("".join(contents))
-          
-            except Exception as e:
-                print(f"Error: {e}")
-
+              process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
+              with open(process_p, "r") as file:
+                  print(process_p.read(),end=" ")
+            except FileNotFoundError:
+                print(f"cat: {process_p}: No such file or directory")
 
     while True:
         sys.stdout.write("$ ")
