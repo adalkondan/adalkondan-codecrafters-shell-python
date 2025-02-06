@@ -50,10 +50,13 @@ def main():
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
             for file_p in messag:
+                processed_p = file_p.strip('"')
+                processed_p = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: m.group(1) if m.group(1) else m.group(2), processed_p)
+                process_p = os.path.normpath(processed_p)
                 try:
-                    if file_p.startswith('"'):
-                        if file_p.endswith('"'):
-                         process_p = file_p[1:-1]
+                    # if file_p.startswith('"'):
+                    #     if file_p.endswith('"'):
+                    #      process_p = file_p[1:-1]
                     # process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
                     # process_p = file_p.replace('"',"")
                     with open(process_p, "r") as file:
