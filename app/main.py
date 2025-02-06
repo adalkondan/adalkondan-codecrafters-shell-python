@@ -55,8 +55,11 @@ def main():
                     with open(process_p, "r") as file:
                         print(process_p.read(),end=" ")
                 except FileNotFoundError:
+                    process_p = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'").replace(" ",""), file_p)
+                    with open(process_p, "r") as file:
+                        print(process_p.read(),end=" ")
                     # print(f"cat: {process_p}: No such file or directory")
-                    print(process_p.read(),end=" ")
+                    # print(process_p.read(),end=" ")
 
     while True:
         sys.stdout.write("$ ")
