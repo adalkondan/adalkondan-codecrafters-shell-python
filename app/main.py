@@ -91,7 +91,18 @@ def main():
         elif user_input == "pwd":
             print(os.getcwd())
         elif user_input == "cat":
-            cat(messag)
+            messages = []
+            for me in messag:
+                cleaned = me.strip("'")
+        
+                # Remove backslashes
+                cleaned = cleaned.replace("\\", "")
+                
+                # Remove spaces
+                cleaned = cleaned.replace(" ", "")
+                messages.append(cleaned)
+            return messages
+            cat(messages)   
         else:
             executable_path = find_executable(user_input)
             if executable_path:
