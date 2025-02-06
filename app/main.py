@@ -50,12 +50,12 @@ def main():
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
             for file_p in messag:
-            try:
-              process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
-              with open(process_p, "r") as file:
-                  print(process_p.read(),end=" ")
-            except FileNotFoundError:
-                print(f"cat: {process_p}: No such file or directory")
+                try:
+                    process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
+                    with open(process_p, "r") as file:
+                        print(process_p.read(),end=" ")
+                except FileNotFoundError:
+                    print(f"cat: {process_p}: No such file or directory")
 
     while True:
         sys.stdout.write("$ ")
