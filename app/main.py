@@ -56,7 +56,7 @@ def main():
                         print(process_p.read(),end=" ")
                 except FileNotFoundError:
                     # print(f"cat: {process_p}: No such file or directory")
-                    print("mango banana.orange apple.apple orange.")
+                    print(process_p.read(),end=" ")
 
     while True:
         sys.stdout.write("$ ")
