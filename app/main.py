@@ -19,11 +19,11 @@ def main():
         for word in messag:
           # cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
           # cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
-          cleaned_word = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'").replace(" ",""), word)  
+          cleaned_word = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'").replace(" ",""), word)
           # cleaned_word = re.sub(r"'([^']*)'|\"([^']*)\"", lambda m: m.group(1) if m.group(1) is not None else m.group(2).replace("\\\\", "\\").replace('\\"', '"'), word)
-          # Append the cleaned word  
+          # Append the cleaned word
           cleaned_msg.append(cleaned_word)
-        
+
         print(" ".join(cleaned_msg))
 
     def type(messag):
@@ -49,17 +49,9 @@ def main():
         # except PermissionError:
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
-        # message = shlex.split(messag, posix=True)
-        for file_path in messag:
-            file_path_parts = shlex.split(file_path, posix=True) 
-        
-            # Rejoin the parts to form a single file path string
-            processed_path = " ".join(file_path_parts) 
-            # processed_path = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: bytes((m.group(1)).replace("\\\\", "\\").replace(""), "utf-8").decode("unicode_escape", "ignore"), file_path)
-            # Normalize the path for the operating system
-            processed_path = re.sub(r"'([^']*)'", lambda m: bytes((m.group(1)).replace("\\\\", "\\"), "utf-8").decode("unicode_escape", "ignore"), processed_path)
-            # processed_path = re.sub(r"'([^']*)'|\"([^\"]*)\"", lambda m: m.group(1) if m.group(1) else m.group(2), file_path)
-            processed_path = os.path.normpath(processed_path)
+            for file_path in messag:
+              # First handle escaped sequences
+              processed_path = re.sub(r'[^a-zA-Z0-9/]', '', file_path)
 
             try:
                 with open(processed_path, "r") as file:
@@ -91,18 +83,7 @@ def main():
         elif user_input == "pwd":
             print(os.getcwd())
         elif user_input == "cat":
-            messages = []
-            for me in messag:
-                cleaned = me.strip("'")
-        
-                # Remove backslashes
-                cleaned = cleaned.replace("\\", "")
-                
-                # Remove spaces
-                cleaned = cleaned.replace(" ", "")
-                messages.append(cleaned)
-            return messages
-            cat(messages)   
+            cat(messag)
         else:
             executable_path = find_executable(user_input)
             if executable_path:
