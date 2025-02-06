@@ -51,10 +51,11 @@ def main():
     def cat(messag):
             for file_p in messag:
                 try:
-                    # if file_p.startswith("'") and file_p.endswith("'"):
-                    #     process_p = file_p[1:-1]
+                    if file_p.startswith('"'):
+                        if file_p.endswith('"'):
+                         process_p = file_p[1:-1]
                     # process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
-                    process_p = file_p.replace('"',"")
+                    # process_p = file_p.replace('"',"")
                     with open(process_p, "r") as file:
                         print(process_p.read(),end=" ")
                 except FileNotFoundError:
