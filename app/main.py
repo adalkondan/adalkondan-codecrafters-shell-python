@@ -124,13 +124,17 @@ def main():
                     sys.stdout = stdout_target
                     type(messag)
                     sys.stdout = original_stdout
-                elif executable_path:
+                if executable_path:
                     try:
                         subprocess.run([user_input] + messag, executable=executable_path, stdout=stdout_target, stderr=stderr_target, text=True, check=True)
                     except subprocess.CalledProcessError as e:
-                        print(f"Error executing {user_input}: {e}", file=sys.stderr)  # Print subprocess errors to stderr
+                        print(f"Error executing {user_input}: {e}", file=sys.stderr) 
+                        return True  # Print subprocess errors to stderr
+                    except BrokenPipeError as e: #Handle broken pipe error separately
+                        print(f"Error executing {user_input}: {e}", file=sys.stderr)
+                        return True
                 else:
-                    print(f"{user_input}: command not found", file=sys.stderr)  # Print command not found to stderr
+                    print(f"{user_input}: command not found", file=sys.stderr) # Print command not found to stderr
 
         except FileNotFoundError as e:
             print(f"Error: Could not open file: {e}", file=sys.stderr)
