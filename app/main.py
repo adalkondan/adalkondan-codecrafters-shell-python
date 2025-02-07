@@ -65,54 +65,79 @@ def main():
                 except Exception as e: #Catch any other exception during file reading.
                     print(f"cat: Error reading {process_p}: {e}", file=sys.stderr)
     def handle_redirection(command_parts):
-        redirection_index = -1
+        out_redirection_index = -1
+        err_redirection_index = -1
         for i, part in enumerate(command_parts):
             if part == ">" or part == "1>":
-                redirection_index = i
-                break
+                out_redirection_index = i
+            elif part == "2>":
+                err_redirection_index = i
 
-        if redirection_index != -1:
-            if redirection_index + 1 < len(command_parts):
-                output_file = command_parts[redirection_index + 1]
-                try:
-                    with open(output_file, "w") as outfile:
-                        # Modify subprocess.run to use the file for stdout
-                        command = command_parts[:redirection_index]  # Command before redirection
-                        user_input = command[0]  # Extract command name
-                        messag = command[1:]       # Extract arguments
+        command = command_parts[:]  # Create a copy to modify
 
-                        # Redirect stdout for built-in and external commands
-                        original_stdout = sys.stdout  # Save original stdout
-                        sys.stdout = outfile           # Redirect stdout to file
-
-                        if user_input == "echo":
-                            echo(messag)
-                        elif user_input == "cat":
-                            cat(messag)
-                        elif user_input == "pwd":
-                            print(os.getcwd())
-                        elif user_input == "type":
-                            type(messag)
-                        else:  # External command
-                            executable_path = find_executable(user_input)
-                            if executable_path:
-                                try:
-                                    subprocess.run([user_input] + messag, executable=executable_path, stdout=outfile, text=True, check=True)
-                                except subprocess.CalledProcessError as e:
-                                    print(f"Error executing {user_input}: {e}")
-                            else:
-                                print(f"{user_input}: command not found")
-
-                        sys.stdout = original_stdout  # Restore stdout
-
-                except FileNotFoundError:
-                    print(f"Error: Could not open file '{output_file}' for writing.")
-                except Exception as e:
-                    print(f"An error occurred during redirection: {e}")
+        outfile = None
+        if out_redirection_index != -1:
+            if out_redirection_index + 1 < len(command_parts):
+                outfile = command_parts[out_redirection_index + 1]
+                del command[out_redirection_index:out_redirection_index + 2] # Remove redirection from command
             else:
                 print("Error: No output file specified after '>' or '1>'.")
-            return True  # Redirection was handled
-        return False  # No redirection found
+                return True #Redirection handled, but with error
+
+        errfile = None
+        if err_redirection_index != -1:
+            if err_redirection_index + 1 < len(command_parts):
+                errfile = command_parts[err_redirection_index + 1]
+                del command[err_redirection_index:err_redirection_index + 2] # Remove redirection from command
+            else:
+                print("Error: No error file specified after '2>'.")
+                return True #Redirection handled, but with error
+
+        user_input = command[0]
+        messag = command[1:]
+        executable_path = find_executable(user_input)
+
+        try:
+            with (open(outfile, "w") if outfile else sys.stdout) as stdout_target, \
+                 (open(errfile, "w") if errfile else sys.stderr) as stderr_target: #Use context manager for both files.
+
+                if user_input == "echo":
+                    original_stdout = sys.stdout
+                    sys.stdout = stdout_target
+                    echo(messag)
+                    sys.stdout = original_stdout
+                elif user_input == "cat":
+                    original_stdout = sys.stdout
+                    sys.stdout = stdout_target
+                    original_stderr = sys.stderr
+                    sys.stderr = stderr_target
+                    cat(messag)
+                    sys.stdout = original_stdout
+                    sys.stderr = original_stderr
+                elif user_input == "pwd":
+                    original_stdout = sys.stdout
+                    sys.stdout = stdout_target
+                    print(os.getcwd())
+                    sys.stdout = original_stdout
+                elif user_input == "type":
+                    original_stdout = sys.stdout
+                    sys.stdout = stdout_target
+                    type(messag)
+                    sys.stdout = original_stdout
+                elif executable_path:
+                    try:
+                        subprocess.run([user_input] + messag, executable=executable_path, stdout=stdout_target, stderr=stderr_target, text=True, check=True)
+                    except subprocess.CalledProcessError as e:
+                        print(f"Error executing {user_input}: {e}", file=sys.stderr)  # Print subprocess errors to stderr
+                else:
+                    print(f"{user_input}: command not found", file=sys.stderr)  # Print command not found to stderr
+
+        except FileNotFoundError as e:
+            print(f"Error: Could not open file: {e}", file=sys.stderr)
+        except Exception as e:
+            print(f"An error occurred during redirection: {e}", file=sys.stderr)
+
+        return True
 
     while True:
         sys.stdout.write("$ ")
