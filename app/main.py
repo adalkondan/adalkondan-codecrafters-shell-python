@@ -51,13 +51,13 @@ def main():
     def cat(messag):
             for file_p in messag:
                 try:
-                    file_p = file_p.strip('"')
-                    if file_p.startswith("'") and file_p.endswith("'"):
-                        process_p = file_p[1:-1]
-                        process_p = process_p.replace("\\'", "'")  # Handle escaped single quotes
+                    process_p = file_p.strip('"')
+                    # if file_p.startswith("'") and file_p.endswith("'"):
+                    #     process_p = file_p[1:-1]
+                        # process_p = process_p.replace("\\'", "'")  # Handle escaped single quotes
                         # process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
-                        with open(process_p, "r") as file:
-                            print(process_p.read(),end=" ")
+                    with open(process_p, "r") as file:
+                        print(process_p.read(),end=" ")
                 except FileNotFoundError:
                     # process_p = file_p.replace("'","").replace("\'","")
                     # with open(process_p, "r") as file:
