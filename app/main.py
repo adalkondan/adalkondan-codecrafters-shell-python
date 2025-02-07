@@ -16,13 +16,11 @@ def main():
 
     def echo(messag):
         cleaned_msg = []
-        for word in messag:
-          # cleaned_word = re.sub(r"'([^']*)'", r"\1", word)
-          # cleaned_word = re.sub(r'"([^"]*)"', r"\1", cleaned_word)
-          cleaned_word = re.sub(r"'([^']*)'", lambda m: m.group(1).replace("\\\\", "\\").replace("\\'", "'").replace(" ",""), word)
-          # cleaned_word = re.sub(r"'([^']*)'|\"([^']*)\"", lambda m: m.group(1) if m.group(1) is not None else m.group(2).replace("\\\\", "\\").replace('\\"', '"'), word)
-          # Append the cleaned word
-          cleaned_msg.append(cleaned_word)
+        for m in messag:
+            if m.startswith('"') and m.endswith('"'):
+                # Handle backslashes within double quotes
+                arg = arg.replace('\\', '').replace('\\\\', '\\').replace('\\$', '$').replace('\\n', '\n')
+            cleaned_msg.append(m)
 
         print(" ".join(cleaned_msg))
 
