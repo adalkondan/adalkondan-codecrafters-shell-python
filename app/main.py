@@ -51,6 +51,7 @@ def main():
     def cat(messag):
             for file_p in messag:
                 try:
+                    file_p = file_p.strip('"')
                     if file_p.startswith("'") and file_p.endswith("'"):
                         process_p = file_p[1:-1]
                         process_p = process_p.replace("\\'", "'")  # Handle escaped single quotes
