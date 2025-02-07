@@ -60,7 +60,7 @@ def main():
                         process_p = file_p #If not quoted, pass it as is.
 
                     with open(process_p, "r") as file:
-                        print(file.read(), end=" ")  # Keep the end=" " to avoid extra newlines
+                        print(file.read(), end="")  # Keep the end=" " to avoid extra newlines
 
                 except FileNotFoundError:
                     print(f"cat: {process_p}: No such file or directory")
