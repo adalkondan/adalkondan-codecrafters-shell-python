@@ -61,9 +61,9 @@ def main():
                         print(file.read(), end="")  # Keep the end=" " to avoid extra newlines
 
                 except FileNotFoundError:
-                    print(f"cat: {process_p}: No such file or directory")
+                    print(f"cat: {process_p}: No such file or directory", file=sys.stderr)
                 except Exception as e: #Catch any other exception during file reading.
-                    print(f"cat: Error reading {process_p}: {e}")
+                    print(f"cat: Error reading {process_p}: {e}", file=sys.stderr)
     def handle_redirection(command_parts):
         redirection_index = -1
         for i, part in enumerate(command_parts):
