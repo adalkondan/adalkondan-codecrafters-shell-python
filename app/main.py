@@ -49,22 +49,23 @@ def main():
         # except PermissionError:
         #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
-            for file_p in messag:
+            for file_p in messag:  # messag contains the arguments from shlex.split()
                 try:
-                    process_p = file_p.strip('"')
-                    # if file_p.startswith("'") and file_p.endswith("'"):
-                    #     process_p = file_p[1:-1]
-                        # process_p = process_p.replace("\\'", "'")  # Handle escaped single quotes
-                        # process_p = re.sub(r'[^a-zA-Z0-9/]', '', file_p)
-                    with open(process_p, "r") as file:
-                        print(process_p.read(),end=" ")
-                except FileNotFoundError:
-                    # process_p = file_p.replace("'","").replace("\'","")
-                    # with open(process_p, "r") as file:
-                    #     print(process_p.read(),end=" ")
-                    print(f"cat: {process_p}: No such file or directory")
-                    # print(process_p.read(),end=" ")
+                    # Check if the argument is quoted.  If so, remove the quotes.
+                    if file_p.startswith("'") and file_p.endswith("'"):
+                        process_p = file_p[1:-1]
+                    elif file_p.startswith('"') and file_p.endswith('"'):
+                        process_p = file_p[1:-1]
+                    else:
+                        process_p = file_p #If not quoted, pass it as is.
 
+                    with open(process_p, "r") as file:
+                        print(file.read(), end=" ")  # Keep the end=" " to avoid extra newlines
+
+                except FileNotFoundError:
+                    print(f"cat: {process_p}: No such file or directory")
+                except Exception as e: #Catch any other exception during file reading.
+                    print(f"cat: Error reading {process_p}: {e}")
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
