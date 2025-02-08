@@ -119,7 +119,9 @@ class Shell:
                     print("type: missing argument", file=stderr)
                     return
                 builtins = {"echo", "exit", "type", "pwd", "cd"} 
+                
                 if command.args[0] in self.builtins:
+
                     print(f"{command.args[0]} is a shell builtin", file=stdout)
                 else:
                     executable_path = self.find_executable(command.args[0])
