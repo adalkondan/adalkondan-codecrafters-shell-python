@@ -33,18 +33,18 @@ def main():
             print(f"{messag[0]} is {executable_path}")
         else:
             print(f"{messag[0]}: not found")
-    def cd(messag):
-        if messag [0] == "~":
-            os.chdir(os.path.expanduser("~"))
-            return
-        try:
-            os.chdir(messag[0])
-        except FileNotFoundError:
-            print(f"cd: {messag[0]}: No such file or directory")
-        # except NotADirectoryError:
-        #     print(f"cd: {messag[0]}: Not a directory")
-        # except PermissionError:
-        #     print(f"cd: {messag[0]}: Permission denied")
+    # def cd(messag):
+    #     if messag [0] == "~":
+    #         os.chdir(os.path.expanduser("~"))
+    #         return
+    #     try:
+    #         os.chdir(messag[0])
+    #     except FileNotFoundError:
+    #         print(f"cd: {messag[0]}: No such file or directory")
+    #     # except NotADirectoryError:
+    #     #     print(f"cd: {messag[0]}: Not a directory")
+    #     # except PermissionError:
+    #     #     print(f"cd: {messag[0]}: Permission denied")
     def cat(messag):
             for file_p in messag:  # messag contains the arguments from shlex.split()
                 try:
@@ -64,7 +64,7 @@ def main():
                 except Exception as e: #Catch any other exception during file reading.
                     print(f"cat: Error reading {process_p}: {e}", file=sys.stderr)
 
-    def normalise_args(user_input) -> list[str]:  # Snippet 1's argument parser
+    def normalise_args(user_input) -> list[str]:  #Enhanced argument parser
         res = []
         arg = ""
         i = 0
@@ -130,38 +130,38 @@ def main():
         else:
             return (new_dir, "")
 
-    def handle_redirection(command_parts):
-        out_redirection_index = -1
-        err_redirection_index = -1
-        for i, part in enumerate(command_parts):
-            if part == ">" or part == "1>":
-                out_redirection_index = i
-            elif part == "2>":
-                err_redirection_index = i
+    # def handle_redirection(command_parts):
+    #     out_redirection_index = -1
+    #     err_redirection_index = -1
+    #     for i, part in enumerate(command_parts):
+    #         if part == ">" or part == "1>":
+    #             out_redirection_index = i
+    #         elif part == "2>":
+    #             err_redirection_index = i
 
-        command = command_parts[:]  # Create a copy to modify
+    #     command = command_parts[:]  # Create a copy to modify
 
-        outfile = None
-        if out_redirection_index != -1:
-            if out_redirection_index + 1 < len(command_parts):
-                outfile = command_parts[out_redirection_index + 1]
-                del command[out_redirection_index:out_redirection_index + 2] # Remove redirection from command
-            else:
-                print("Error: No output file specified after '>' or '1>'.")
-                return True #Redirection handled, but with error
+    #     outfile = None
+    #     if out_redirection_index != -1:
+    #         if out_redirection_index + 1 < len(command_parts):
+    #             outfile = command_parts[out_redirection_index + 1]
+    #             del command[out_redirection_index:out_redirection_index + 2] # Remove redirection from command
+    #         else:
+    #             print("Error: No output file specified after '>' or '1>'.")
+    #             return True #Redirection handled, but with error
 
-        errfile = None
-        if err_redirection_index != -1:
-            if err_redirection_index + 1 < len(command_parts):
-                errfile = command_parts[err_redirection_index + 1]
-                del command[err_redirection_index:err_redirection_index + 2] # Remove redirection from command
-            else:
-                print("Error: No error file specified after '2>'.")
-                return True #Redirection handled, but with error
+    #     errfile = None
+    #     if err_redirection_index != -1:
+    #         if err_redirection_index + 1 < len(command_parts):
+    #             errfile = command_parts[err_redirection_index + 1]
+    #             del command[err_redirection_index:err_redirection_index + 2] # Remove redirection from command
+    #         else:
+    #             print("Error: No error file specified after '2>'.")
+    #             return True #Redirection handled, but with error
 
-        user_input = command[0]
-        messag = command[1:]
-        executable_path = find_executable(user_input)
+    #     user_input = command[0]
+    #     messag = command[1:]
+    #     executable_path = find_executable(user_input)
 
         try:
             with (open(outfile, "w") if outfile else sys.stdout) as stdout_target, \
