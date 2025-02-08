@@ -97,7 +97,7 @@ class Shell:
             executable_path = self.find_executable(command.command)
             if not executable_path:
                 executable_path = command.command  # Try using the command as-is
-                
+            executable_name = os.path.basename(executable_path)    
             process = subprocess.run(
                 [executable_path] + command.args,
                 stdout=stdout if stdout != self.original_stdout else subprocess.PIPE,
@@ -106,9 +106,9 @@ class Shell:
             )
             
             if process.stdout and stdout == self.original_stdout:
-                print(process.stdout, end='', file=stdout)
+                print(process.stdout.replace(executable_path, executable_name), end='', file=stdout)
             if process.stderr and stderr == self.original_stderr:
-                print(process.stderr, end='', file=stderr)
+                print(process.stderr.replace(executable_path, executable_name), end='', file=stderr)
                 
         except FileNotFoundError:
             print(f"{command.command}: command not found", file=stderr)
