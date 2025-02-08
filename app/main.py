@@ -149,6 +149,8 @@ class Shell:
                         print(f"cat: {file_path}: No such file or directory", file=stderr)
                     except PermissionError:
                         print(f"cat: {file_path}: Permission denied", file=stderr)
+                    except Exception as e:
+                        print(f"cat: {file_path}: Error: {e}", file=stderr)
         except Exception as e:
             print(f"Error executing builtin command: {e}", file=stderr)
 
