@@ -47,10 +47,16 @@ class Shell:
         i = 0
         while i < len(parts):
             if parts[i] in ['>', '1>'] and i + 1 < len(parts):
-                stdout_redirect = ('>', parts[i + 1])
+                stdout_redirect = ('w', parts[i + 1])  # write mode
+                i += 2
+            elif parts[i] in ['>>', '1>>'] and i + 1 < len(parts):
+                stdout_redirect = ('a', parts[i + 1])  # append mode
                 i += 2
             elif parts[i] == '2>' and i + 1 < len(parts):
-                stderr_redirect = ('2>', parts[i + 1])
+                stderr_redirect = ('w', parts[i + 1])  # write mode
+                i += 2
+            elif parts[i] == '2>>' and i + 1 < len(parts):
+                stderr_redirect = ('a', parts[i + 1])  # append mode
                 i += 2
             else:
                 command_parts.append(parts[i])
@@ -72,16 +78,18 @@ class Shell:
         stderr = self.original_stderr
 
         if command.stdout_redirect:
-            try:
-                stdout = open(command.stdout_redirect[1], 'w')
-            except IOError as e:
-                print(f"Error opening file for stdout redirection: {e}", file=sys.stderr)
+            mode, filename = command.stdout_redirect
+        try:
+            stdout = open(filename, mode)
+        except IOError as e:
+            print(f"Error opening file for stdout redirection: {e}", file=sys.stderr)
 
         if command.stderr_redirect:
-            try:
-                stderr = open(command.stderr_redirect[1], 'w')
-            except IOError as e:
-                print(f"Error opening file for stderr redirection: {e}", file=sys.stderr)
+            mode, filename = command.stderr_redirect
+        try:
+            stderr = open(filename, mode)
+        except IOError as e:
+            print(f"Error opening file for stderr redirection: {e}", file=sys.stderr)
 
         return stdout, stderr
 
