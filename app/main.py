@@ -14,7 +14,7 @@ class ShellCommand:
         self.stderr_redirect = stderr_redirect
 
 class Shell:
-    BUILTINS = {"echo", "exit", "type", "pwd", "cd", "cat"}
+    BUILTINS = {"echo", "exit", "type", "pwd", "cd"}
 
     def __init__(self):
         self.original_stdout = sys.stdout
@@ -118,7 +118,8 @@ class Shell:
                 if not command.args:
                     print("type: missing argument", file=stderr)
                     return
-                if command.args[0] in self.BUILTINS:
+                builtins = {"echo", "exit", "type", "pwd", "cd"} 
+                if command.args[0] in self.builtins:
                     print(f"{command.args[0]} is a shell builtin", file=stdout)
                 else:
                     executable_path = self.find_executable(command.args[0])
