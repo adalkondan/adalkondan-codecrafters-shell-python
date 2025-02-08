@@ -118,7 +118,7 @@ class Shell:
                 if not command.args:
                     print("type: missing argument", file=stderr)
                     return
-                builtins = {"echo", "exit", "type", "pwd", "cd"} 
+                self.builtins = {"echo", "exit", "type", "pwd", "cd"} 
                 
                 if command.args[0] in self.builtins:
 
