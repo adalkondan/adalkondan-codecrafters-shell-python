@@ -4,7 +4,6 @@ import subprocess
 import re
 import shlex
 
-
 def main():
     def find_executable(executable):
         for path in os.environ["PATH"].split(os.pathsep):
@@ -64,6 +63,73 @@ def main():
                     print(f"cat: {process_p}: No such file or directory", file=sys.stderr)
                 except Exception as e: #Catch any other exception during file reading.
                     print(f"cat: Error reading {process_p}: {e}", file=sys.stderr)
+
+    def normalise_args(user_input) -> list[str]:  # Snippet 1's argument parser
+        res = []
+        arg = ""
+        i = 0
+        while i < len(user_input):
+            if user_input[i] == "'":
+                i += 1
+                start = i
+                while i < len(user_input) and user_input[i] != "'":
+                    i += 1
+                arg += user_input[start:i]
+                i += 1
+            elif user_input[i] == '"':
+                i += 1
+                while i < len(user_input):
+                    if user_input[i] == "\\":
+                        if user_input[i + 1] in ["\\", "$", '"', "\n"]:
+                            arg += user_input[i + 1]
+                            i += 2
+                        else:
+                            arg += user_input[i]
+                            i += 1
+                    elif user_input[i] == '"':
+                        break
+                    else:
+                        arg += user_input[i]
+                        i += 1
+                i += 1
+            elif user_input[i] == " ":
+                if arg:
+                    res.append(arg)
+                arg = ""
+                i += 1
+            elif user_input[i] == "\\":
+                i += 1
+            else:
+                while i < len(user_input) and user_input[i] != " ":
+                    if user_input[i] == "\\":
+                        arg += user_input[i + 1]
+                        i += 2
+                    else:
+                        arg += user_input[i]
+                        i += 1
+            
+        if arg:
+            res.append(arg)
+        return res
+
+    def cd_cmd(args, cur_dir) -> tuple[str, str]: #Snippet 1's enhanced cd
+        path = args[0]
+        new_dir = cur_dir
+        if path.startswith("/"):
+            new_dir = path
+        else:
+            for p in filter(None, path.split("/")):
+                if p == "..":
+                    new_dir = new_dir.rsplit("/", 1)[0]
+                elif p == "~":
+                    new_dir = os.environ["HOME"]
+                elif p != ".":
+                    new_dir += f"/{p}"
+        if not os.path.exists(new_dir):
+            return (cur_dir, f"cd: {path}: No such file or directory")
+        else:
+            return (new_dir, "")
+
     def handle_redirection(command_parts):
         out_redirection_index = -1
         err_redirection_index = -1
@@ -143,38 +209,55 @@ def main():
 
         return True
 
+    cur_dir = os.getcwd() #Keep track of current directory
     while True:
         sys.stdout.write("$ ")
         sys.stdout.flush()
-        command = input().strip()
-        command = shlex.split(command, posix=True)
-        if not command:
+        user_input = input()
+        args = normalise_args(user_input) #Use the enhanced argument parser
+        if not args: #Handle empty input
             continue
-        if handle_redirection(command):  # Check and handle redirection
-            continue 
-        user_input = command[0]
-        messag = command[1:]
-        if user_input == "echo":
-            echo(messag)
-        elif user_input == "exit":
-            break
-        elif user_input == "type":
-            type(messag)
-        elif user_input == "cd":
-            cd(messag)
-        elif user_input == "pwd":
-            print(os.getcwd())
-        elif user_input == "cat":
-            cat(messag)
+        cmd, args = args[0], args[1:]
+        out, err = "", ""
+
+        if cmd == "exit":
+            if args and args[0] == "0": #Handle exit code
+                break
+            elif not args:
+                break
+        elif cmd == "echo":
+            out = " ".join(args)
+        elif cmd == "type":
+            if args:
+              out, err = type(args) #type function is already defined
+        elif cmd == "pwd":
+            out = cur_dir
+        elif cmd == "cd":
+            cur_dir, err = cd_cmd(args, cur_dir) #Use the enhanced cd
+        elif cmd == "cat":
+            out, err = cat(args)
         else:
-            executable_path = find_executable(user_input)
+            executable_path = find_executable(cmd)
             if executable_path:
                 try:
-                    subprocess.run([user_input] + messag,executable=executable_path, capture_output=False, text=True)
-                except subprocess.CalledProcessError:
-                    print(f"Error executing {user_input}")
+                    res = subprocess.run(
+                        args=([cmd] + args),
+                        capture_output=True,
+                        text=True,
+                        check=True
+                    )
+                    out = res.stdout.rstrip()
+                    err = res.stderr.rstrip()
+                except subprocess.CalledProcessError as e:
+                    err = f"Error executing {cmd}: {e}"
             else:
-                print(f"{user_input}: command not found")
+                err = f"{user_input}: command not found"
+
+        if err:
+            print(err, file=sys.stderr)
+        if out:
+            print(out, file=sys.stdout)
+
 
 if __name__ == "__main__":
     main()
