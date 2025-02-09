@@ -35,7 +35,7 @@ class Shell:
         if not buffer.strip() or buffer.strip() == text:
             matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
             if state < len(matches):
-                return matches[state]
+                return matches[state] + ' '
             return None
 
         return None
