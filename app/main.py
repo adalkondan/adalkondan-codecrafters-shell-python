@@ -30,14 +30,16 @@ class Shell:
     def complete(self, text: str, state: int) -> Optional[str]:
         """Completion function for readline"""
         buffer = readline.get_line_buffer()
+        cmd_start = buffer[:readline.get_begidx()]
         
-        # If we're at the start of the line, complete builtin commands
-        if not buffer.strip() or buffer.strip() == text:
+        # If we're at the start of the line or completing the command
+        if not cmd_start.strip():
             matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
-            if state < len(matches):
-                return matches[state] + ' '
-            return None
-
+            try:
+                return matches[state]
+            except IndexError:
+                return None
+                
         return None
 
     def find_executable(self, executable: str) -> Optional[str]:
