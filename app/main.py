@@ -20,6 +20,21 @@ class Shell:
         self.original_stderr = sys.stderr
         self.builtins = {"echo", "exit", "type", "pwd", "cd"}
         self.setup_completion()
+        self._cache_executables()
+
+    def _cache_executables(self):
+        """Cache all executable files in PATH"""
+        self.executables = set()
+        for path in os.environ.get("PATH", "").split(os.pathsep):
+            try:
+                path = path.strip('"')
+                if os.path.isdir(path):
+                    for file in os.listdir(path):
+                        full_path = os.path.join(path, file)
+                        if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
+                            self.executables.add(file)
+            except Exception:
+                continue
 
     def setup_completion(self):
         """Set up command completion using readline"""
@@ -34,9 +49,15 @@ class Shell:
         
         # If we're at the start of the line or completing the command
         if not cmd_start.strip():
-            matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
+            # First try builtins
+            builtin_matches = [cmd + ' ' for cmd in self.builtins if cmd.startswith(text)]
+            # Then try executables
+            executable_matches = [cmd + ' ' for cmd in self.executables if cmd.startswith(text)]
+            # Combine matches
+            matches = builtin_matches + executable_matches
+            
             try:
-                return matches[state] + " "
+                return matches[state] + ' '
             except IndexError:
                 return None
                 
@@ -164,8 +185,7 @@ class Shell:
                 if not command.args:
                     print("type: missing argument", file=stderr)
                     return
-                builtins = {"echo", "exit", "type", "pwd", "cd"}
-                if command.args[0] in builtins:
+                if command.args[0] in self.builtins:
                     print(f"{command.args[0]} is a shell builtin", file=stdout)
                 else:
                     executable_path = self.find_executable(command.args[0])
