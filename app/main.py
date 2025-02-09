@@ -50,28 +50,30 @@ class Shell:
         return sorted(set(matches)) 
 
     def complete(self, text: str, state: int) -> Optional[str]:
-            """Custom tab-completion handler."""
-            if state == 0:
-                self.last_tab_matches = self.get_matches(text)
-                
-                if len(self.last_tab_matches) > 1:
-                    # First TAB press: ring the bell
-                    sys.stdout.write('\a')
-                    sys.stdout.flush()
-                    return None
+        """Custom tab-completion handler for executables."""
+        if state == 0:
+            # Fetch matching executables
+            self.last_tab_matches = self.get_matches(text)
 
-            if self.last_tab_matches:
-                if state == 1:  # Second TAB press
-                    print()  # New line before displaying matches
-                    print("  ".join(self.last_tab_matches))  # Print matches separated by 2 spaces
-                    print("$ " + text, end="", flush=True)  # Redisplay prompt with partial input
-                    self.last_tab_matches = None  # Reset match tracking
-                    return None
+            if len(self.last_tab_matches) > 1:
+                # First TAB press: ring the bell and return None
+                sys.stdout.write('\a')  # Ring bell
+                sys.stdout.flush()
+                return None
 
-                if state < len(self.last_tab_matches):
-                    return self.last_tab_matches[state] + " "
+        if self.last_tab_matches:
+            if state == 1:  # Second TAB press
+                print()  # Move to a new line
+                print("  ".join(self.last_tab_matches))  # Print matches separated by 2 spaces
+                print("$ " + text, end="", flush=True)  # Redisplay prompt with partial input
+                self.last_tab_matches = None  # Reset match tracking
+                return None
 
-            return None
+            if state < len(self.last_tab_matches):
+                return self.last_tab_matches[state] + " "
+
+        return None
+
 
 
     def find_executable(self, executable: str) -> Optional[str]:
