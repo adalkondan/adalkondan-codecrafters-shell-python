@@ -43,11 +43,11 @@ class Shell:
         readline.set_completer(self.complete)
         readline.set_completer_delims(' \t\n;')
 
-    def get_matches(self, text: str) -> List[str]:
+    def get_matches(self, text: str) -> list:
         """Get all matching commands for the given text"""
-        builtin_matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
-        executable_matches = [cmd for cmd in self.executables if cmd.startswith(text)]
-        return sorted(builtin_matches + executable_matches)
+        matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
+        matches.extend([exe for exe in self.executables if exe.startswith(text)])
+        return sorted(set(matches)) 
 
     def complete(self, text: str, state: int) -> Optional[str]:
             """Custom tab-completion handler."""
