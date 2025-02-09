@@ -2,6 +2,7 @@ import sys
 import os
 import subprocess
 import shlex
+import readline
 from typing import Optional, Tuple, List, TextIO
 
 class ShellCommand:
@@ -17,6 +18,27 @@ class Shell:
     def __init__(self):
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
+        self.builtins = {"echo", "exit", "type", "pwd", "cd"}
+        self.setup_completion()
+
+    def setup_completion(self):
+        """Set up command completion using readline"""
+        readline.parse_and_bind('tab: complete')
+        readline.set_completer(self.complete)
+        readline.set_completer_delims(' \t\n;')
+
+    def complete(self, text: str, state: int) -> Optional[str]:
+        """Completion function for readline"""
+        buffer = readline.get_line_buffer()
+        
+        # If we're at the start of the line, complete builtin commands
+        if not buffer.strip() or buffer.strip() == text:
+            matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
+            if state < len(matches):
+                return matches[state]
+            return None
+
+        return None
 
     def find_executable(self, executable: str) -> Optional[str]:
         """Find the full path of an executable in PATH."""
@@ -170,7 +192,7 @@ class Shell:
                 stdout, stderr = self.setup_redirection(command)
                 
                 try:
-                    if command.command in {"echo", "cd", "pwd", "type"}:
+                    if command.command in self.builtins:
                         self.execute_builtin(command, stdout, stderr)
                     else:
                         self.execute_external(command, stdout, stderr)
