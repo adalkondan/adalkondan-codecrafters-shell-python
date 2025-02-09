@@ -50,26 +50,29 @@ class Shell:
         return sorted(builtin_matches + executable_matches)
 
     def complete(self, text: str, state: int) -> Optional[str]:
-        """Completion function for readline"""
-        if state == 0:
-            matches = self.get_matches(text)
-            if len(matches) > 1:
-                if self.last_tab_matches == matches:
-                    # Second tab press: display matches
-                    print()
-                    print('  '.join(matches))
-                    self.last_tab_matches = None
-                else:
-                    # First tab press: ring bell
-                    self.last_tab_matches = matches
+            """Custom tab-completion handler."""
+            if state == 0:
+                self.last_tab_matches = self.get_matches(text)
+                
+                if len(self.last_tab_matches) > 1:
+                    # First TAB press: ring the bell
                     sys.stdout.write('\a')
                     sys.stdout.flush()
-                return None
-            elif len(matches) == 1:
-                return matches[0] + ' '
-            self.last_tab_matches = None
+                    return None
+
+            if self.last_tab_matches:
+                if state == 1:  # Second TAB press
+                    print()  # New line before displaying matches
+                    print("  ".join(self.last_tab_matches))  # Print matches separated by 2 spaces
+                    print("$ " + text, end="", flush=True)  # Redisplay prompt with partial input
+                    self.last_tab_matches = None  # Reset match tracking
+                    return None
+
+                if state < len(self.last_tab_matches):
+                    return self.last_tab_matches[state] + " "
+
             return None
-        return None
+
 
     def find_executable(self, executable: str) -> Optional[str]:
         """Find the full path of an executable in PATH."""
