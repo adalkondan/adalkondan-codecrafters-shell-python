@@ -57,7 +57,7 @@ class Shell:
             matches = builtin_matches + executable_matches
             
             try:
-                return matches[state] + ' '
+                return matches[state]
             except IndexError:
                 return None
                 
