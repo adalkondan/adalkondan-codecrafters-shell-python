@@ -52,40 +52,39 @@ class Shell:
     def complete(self, text: str, state: int) -> Optional[str]:
         """Completion function for readline"""
         buffer = readline.get_line_buffer()
-        cmd_start = buffer[:readline.get_begidx()]
+        line = buffer.split()
         
-        # Only complete at the start of the line
-        if not cmd_start.strip():
-            matches = self.get_matches(text)
-            
-            # No matches
-            if not matches:
-                return None
-                
-            # Single match
-            if len(matches) == 1:
-                return matches[0] + ' '
-                
-            # Multiple matches
-            if state == 0:
-                # First tab press - store matches and ring bell
-                if matches != self.last_tab_matches:
-                    self.last_tab_matches = matches
-                    sys.stdout.write('\a')
-                    sys.stdout.flush()
-                    return None
-                # Second tab press - display matches
-                else:
-                    print('\n' + '  '.join(matches))
-                    print(f'\n$ {text}', end='')
-                    sys.stdout.flush()
-                    self.last_tab_matches = None
-                    return None
-                    
+        if not line or buffer.endswith(' '):
             return None
-        
-        return None
 
+        if len(line) == 1:
+            matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
+            if state < len(matches):
+                return matches[state] + ' '  # Add a space after the completed command
+            elif state == len(matches):
+                # If there are multiple matches, display them
+                if len(matches) > 1:
+                    print("\n" + "  ".join(matches))
+                    readline.redisplay()
+                return None
+        return None
+    def run(self):
+        while True:
+            try:
+                command_line = input("$ ")
+                if command_line.strip() == "":
+                    continue
+                command = self.parse_command(command_line)
+                if command.command in self.builtins:
+                    self.execute_builtin(command, self.original_stdout, self.original_stderr)
+                else:
+                    self.execute_external(command, self.original_stdout, self.original_stderr)
+            except KeyboardInterrupt:
+                print("\n", end='')
+                continue
+            except Exception as e:
+                print(f"Shell error: {e}", file=sys.stderr)
+        
     def find_executable(self, executable: str) -> Optional[str]:
         """Find the full path of an executable in PATH."""
         for path in os.environ["PATH"].split(os.pathsep):
