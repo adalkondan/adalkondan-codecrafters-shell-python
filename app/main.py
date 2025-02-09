@@ -59,6 +59,8 @@ class Shell:
 
         if len(line) == 1:
             matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
+            matches.extend([exe for exe in self.executables if exe.startswith(text)])
+            matches = sorted(set(matches)) 
             if state < len(matches):
                 return matches[state] + ' '  # Add a space after the completed command
             elif state == len(matches):
