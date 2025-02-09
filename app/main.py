@@ -1,250 +1,122 @@
-import sys
-import os
-import subprocess
-import shlex
+from collections.abc import Mapping
 import readline
-from typing import Optional, Tuple, List, TextIO
-
-class ShellCommand:
-    def __init__(self, command: str, args: List[str], 
-                 stdout_redirect: Optional[Tuple[str, str]] = None,
-                 stderr_redirect: Optional[Tuple[str, str]] = None):
-        self.command = command
-        self.args = args
-        self.stdout_redirect = stdout_redirect
-        self.stderr_redirect = stderr_redirect
-
-class Shell:
-    def __init__(self):
-        self.original_stdout = sys.stdout
-        self.original_stderr = sys.stderr
-        self.builtins = {"echo", "exit", "type", "pwd", "cd"}
-        self.last_tab_matches = None
-        self.setup_completion()
-        self._cache_executables()
-
-    def _cache_executables(self):
-        """Cache all executable files in PATH"""
-        self.executables = set()
-        for path in os.environ.get("PATH", "").split(os.pathsep):
-            try:
-                path = path.strip('"')
-                if os.path.isdir(path):
-                    for file in os.listdir(path):
-                        full_path = os.path.join(path, file)
-                        if os.path.isfile(full_path) and os.access(full_path, os.X_OK):
-                            self.executables.add(file)
-            except Exception:
-                continue
-
-    def setup_completion(self):
-        """Set up command completion using readline"""
-        readline.parse_and_bind('tab: complete')
-        readline.set_completer(self.complete)
-        readline.set_completer_delims(' \t\n;')
-
-    def get_matches(self, text: str) -> list:
-        """Get all matching commands for the given text"""
-        matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
-        matches.extend([exe for exe in self.executables if exe.startswith(text)])
-        return sorted(set(matches)) 
-
-    def complete(self, text: str, state: int) -> Optional[str]:
-        """Custom tab-completion handler for executables."""
-        if state == 0:
-            # Fetch matching executables
-            self.last_tab_matches = self.get_matches(text)
-
-            if len(self.last_tab_matches) > 1:
-                # First TAB press: ring the bell and return None
-                sys.stdout.write('\a')  # Ring bell
-                sys.stdout.flush()
-                return None
-
-        if self.last_tab_matches:
-            if state == 1:  # Second TAB press
-                print()  # Move to a new line
-                print("  ".join(self.last_tab_matches))  # Print matches separated by 2 spaces
-                print("$ " + text, end="", flush=True)  # Redisplay prompt with partial input
-                self.last_tab_matches = None  # Reset match tracking
-                return None
-
-            if state < len(self.last_tab_matches):
-                return self.last_tab_matches[state] + " "
-
-        return None
-
-
-
-    def find_executable(self, executable: str) -> Optional[str]:
-        """Find the full path of an executable in PATH."""
-        for path in os.environ["PATH"].split(os.pathsep):
-            path = path.strip('"')
-            executable_path = os.path.join(path, executable)
-            if os.path.isfile(executable_path) and os.access(executable_path, os.X_OK):
-                return executable_path
-        return None
-
-    def parse_command(self, command_line: str) -> ShellCommand:
-        try:
-            parts = shlex.split(command_line, posix=True)
-        except ValueError as e:
-            print(f"Error parsing command: {e}", file=sys.stderr)
-            return ShellCommand("", [])
-
-        if not parts:
-            return ShellCommand("", [])
-
-        stdout_redirect = None
-        stderr_redirect = None
-        command_parts = []
-
-        i = 0
-        while i < len(parts):
-            if parts[i] in ['>', '1>'] and i + 1 < len(parts):
-                stdout_redirect = ('w', parts[i + 1])
-                i += 2
-            elif parts[i] in ['>>', '1>>'] and i + 1 < len(parts):
-                stdout_redirect = ('a', parts[i + 1])
-                i += 2
-            elif parts[i] == '2>' and i + 1 < len(parts):
-                stderr_redirect = ('w', parts[i + 1])
-                i += 2
-            elif parts[i] == '2>>' and i + 1 < len(parts):
-                stderr_redirect = ('a', parts[i + 1])
-                i += 2
-            else:
-                command_parts.append(parts[i])
-                i += 1
-
-        if not command_parts:
-            return ShellCommand("", [])
-
-        return ShellCommand(
-            command_parts[0],
-            command_parts[1:],
-            stdout_redirect,
-            stderr_redirect
-        )
-
-    def setup_redirection(self, command: ShellCommand) -> Tuple[TextIO, TextIO]:
-        stdout = self.original_stdout
-        stderr = self.original_stderr
-
-        try:
-            if command.stdout_redirect:
-                mode, filepath = command.stdout_redirect
-                stdout = open(filepath, mode)
-
-            if command.stderr_redirect:
-                mode, filepath = command.stderr_redirect
-                stderr = open(filepath, mode)
-        except Exception as e:
-            print(f"Redirection error: {e}", file=self.original_stderr)
-
-        return stdout, stderr
-
-    def cleanup_redirection(self, stdout: TextIO, stderr: TextIO):
-        if stdout != self.original_stdout:
-            stdout.close()
-        if stderr != self.original_stderr:
-            stderr.close()
-
-    def execute_external(self, command: ShellCommand, stdout: TextIO, stderr: TextIO):
-        try:
-            executable_path = self.find_executable(command.command)
-            if not executable_path:
-                executable_path = command.command  # Try using the command as-is
-            executable_name = os.path.basename(executable_path)    
-            process = subprocess.run(
-                [executable_path] + command.args,
-                stdout=stdout if stdout != self.original_stdout else subprocess.PIPE,
-                stderr=stderr if stderr != self.original_stderr else subprocess.PIPE,
-                text=True
-            )
-            
-            if process.stdout and stdout == self.original_stdout:
-                print(process.stdout.replace(executable_path, executable_name), end='', file=stdout)
-            if process.stderr and stderr == self.original_stderr:
-                print(process.stderr.replace(executable_path, executable_name), end='', file=stderr)
-                
-        except FileNotFoundError:
-            print(f"{command.command}: command not found", file=stderr)
-        except Exception as e:
-            print(f"Error: {e}", file=stderr)
-
-    def execute_builtin(self, command: ShellCommand, stdout: TextIO, stderr: TextIO):
-        try:
-            if command.command == "echo":
-                print(" ".join(command.args), file=stdout)
-            elif command.command == "pwd":
-                print(os.getcwd(), file=stdout)
-            elif command.command == "cd":
-                if not command.args:
-                    print("cd: missing directory", file=stderr)
-                    return
-                try:
-                    if command.args[0] == "~":
-                        os.chdir(os.path.expanduser("~"))
-                    else:
-                        os.chdir(command.args[0])
-                except FileNotFoundError:
-                    print(f"cd: {command.args[0]}: No such file or directory", file=stderr)
-                except NotADirectoryError:
-                    print(f"cd: {command.args[0]}: Not a directory", file=stderr)
-                except PermissionError:
-                    print(f"cd: {command.args[0]}: Permission denied", file=stderr)
-            elif command.command == "type":
-                if not command.args:
-                    print("type: missing argument", file=stderr)
-                    return
-                if command.args[0] in self.builtins:
-                    print(f"{command.args[0]} is a shell builtin", file=stdout)
-                else:
-                    executable_path = self.find_executable(command.args[0])
-                    if executable_path:
-                        print(f"{command.args[0]} is {executable_path}", file=stdout)
-                    else:
-                        print(f"{command.args[0]}: not found", file=stderr)
-        except Exception as e:
-            print(f"Error executing builtin command: {e}", file=stderr)
-
-    def run(self):
-        while True:
-            try:
-                sys.stdout.write("$ ")
-                sys.stdout.flush()
-                command_line = input().strip()
-                
-                if not command_line:
-                    continue
-
-                command = self.parse_command(command_line)
-                
-                if command.command == "exit":
-                    break
-
-                stdout, stderr = self.setup_redirection(command)
-                
-                try:
-                    if command.command in self.builtins:
-                        self.execute_builtin(command, stdout, stderr)
-                    else:
-                        self.execute_external(command, stdout, stderr)
-                finally:
-                    self.cleanup_redirection(stdout, stderr)
-
-            except EOFError:
-                break
-            except KeyboardInterrupt:
-                print("\n", end='')
-                continue
-            except Exception as e:
-                print(f"Shell error: {e}", file=sys.stderr)
-
+import shlex
+import subprocess
+import sys
+import pathlib
+import os
+from typing import Final, TextIO
+SHELL_BUILTINS: Final[list[str]] = [
+    "echo",
+    "exit",
+    "type",
+    "pwd",
+    "cd",
+]
+def parse_programs_in_path(path: str, programs: dict[str, pathlib.Path]) -> None:
+    """Creates a mapping of programs in path to their paths"""
+    for root, _, files in os.walk(path): # Use os.walk here
+        for file in files:
+            programs[file] = pathlib.Path(root)
+def generate_program_paths() -> Mapping[str, pathlib.Path]:
+    programs: dict[str, pathlib.Path] = {}
+    for p in (os.getenv("PATH") or "").split(":"):
+        parse_programs_in_path(p, programs)
+    return programs
+PROGRAMS_IN_PATH: Final[Mapping[str, pathlib.Path]] = {**generate_program_paths()}
+COMPLETIONS: Final[list[str]] = [*SHELL_BUILTINS, *PROGRAMS_IN_PATH.keys()]
+def display_matches(substitution, matches, longest_match_length):
+    print()
+    if matches:
+        print("  ".join(matches))
+    print("$ " + substitution, end="")
+def complete(text: str, state: int) -> str | None:
+    matches = list(set([s for s in COMPLETIONS if s.startswith(text)]))
+    if len(matches) == 1:
+        return matches[state] + " " if state < len(matches) else None
+    return matches[state] if state < len(matches) else None
+readline.set_completion_display_matches_hook(display_matches)
+readline.parse_and_bind("tab: complete")
+readline.set_completer(complete)
 def main():
-    shell = Shell()
-    shell.run()
-
+    while True:
+        sys.stdout.write("$ ")
+        cmds = shlex.split(input())
+        out = sys.stdout
+        err = sys.stderr
+        close_out = False
+        close_err = False
+        try:
+            if ">" in cmds:
+                out_index = cmds.index(">")
+                out = open(cmds[out_index + 1], "w")
+                close_out = True
+                cmds = cmds[:out_index] + cmds[out_index + 2 :]
+            elif "1>" in cmds:
+                out_index = cmds.index("1>")
+                out = open(cmds[out_index + 1], "w")
+                close_out = True
+                cmds = cmds[:out_index] + cmds[out_index + 2 :]
+            if "2>" in cmds:
+                out_index = cmds.index("2>")
+                err = open(cmds[out_index + 1], "w")
+                close_err = True
+                cmds = cmds[:out_index] + cmds[out_index + 2 :]
+            if ">>" in cmds:
+                out_index = cmds.index(">>")
+                out = open(cmds[out_index + 1], "a")
+                close_out = True
+                cmds = cmds[:out_index] + cmds[out_index + 2 :]
+            elif "1>>" in cmds:
+                out_index = cmds.index("1>>")
+                out = open(cmds[out_index + 1], "a")
+                close_out = True
+                cmds = cmds[:out_index] + cmds[out_index + 2 :]
+            if "2>>" in cmds:
+                out_index = cmds.index("2>>")
+                err = open(cmds[out_index + 1], "a")
+                close_err = True
+                cmds = cmds[:out_index] + cmds[out_index + 2 :]
+            handle_all(cmds, out, err)
+        finally:
+            if close_out:
+                out.close()
+            if close_err:
+                err.close()
+def handle_all(cmds: list[str], out: TextIO, err: TextIO):
+    # Wait for user input
+    match cmds:
+        case ["echo", *s]:
+            out.write(" ".join(s) + "\n")
+        case ["type", s]:
+            type_command(s, out, err)
+        case ["exit", "0"]:
+            sys.exit(0)
+        case ["pwd"]:
+            out.write(f"{os.getcwd()}\n")
+        case ["cd", dir]:
+            cd(dir, out, err)
+        case [cmd, *args] if cmd in PROGRAMS_IN_PATH:
+            process = subprocess.Popen([cmd, *args], stdout=out, stderr=err)
+            process.wait()
+        case command:
+            out.write(f"{' '.join(command)}: command not found\n")
+def type_command(command: str, out: TextIO, err: TextIO):
+    if command in SHELL_BUILTINS:
+        out.write(f"{command} is a shell builtin\n")
+        return
+    if command in PROGRAMS_IN_PATH:
+        out.write(f"{command} is {PROGRAMS_IN_PATH[command]}\n")
+        return
+    out.write(f"{command}: not found\n")
+def cd(path: str, out: TextIO, err: TextIO) -> None:
+    if path.startswith("~"):
+        home = os.getenv("HOME") or "/root"
+        path = path.replace("~", home)
+    p = pathlib.Path(path)
+    if not p.exists():
+        out.write(f"cd: {path}: No such file or directory\n")
+        return
+    os.chdir(p)
 if __name__ == "__main__":
     main()
