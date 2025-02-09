@@ -19,7 +19,7 @@ class Shell:
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.builtins = {"echo", "exit", "type", "pwd", "cd"}
-        # For completion handling:
+        # For completion state tracking:
         self.last_tab_matches: List[str] = []
         self.last_completion_text: str = ""
         self.tab_press_count = 0
@@ -48,49 +48,72 @@ class Shell:
 
     def get_matches(self, text: str) -> List[str]:
         """Get all matching commands for the given text"""
+        # Here we consider both builtins and executables.
         matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
         matches.extend([exe for exe in self.executables if exe.startswith(text)])
         return sorted(set(matches))
 
+    def longest_common_prefix(self, strings: List[str]) -> str:
+        """Return the longest common prefix for a list of strings."""
+        if not strings:
+            return ""
+        prefix = strings[0]
+        for s in strings[1:]:
+            while not s.startswith(prefix):
+                prefix = prefix[:-1]
+                if prefix == "":
+                    return ""
+        return prefix
+
     def complete(self, text: str, state: int) -> Optional[str]:
         """
-        Custom completer:
-          - If the text changed, reset the tab-press count and update matches.
-          - If more than one match exists:
-              * On the first Tab press, ring the bell.
-              * On the second Tab press, print all matching commands and reprint the prompt.
-          - If a unique match is found, complete it.
+        Tab-completion behavior:
+          - If multiple matches exist and their longest common prefix extends the current text,
+            complete to that common prefix.
+          - Otherwise, if no further completion is possible:
+              * On the first Tab press, ring a bell.
+              * On the second Tab press, print all matching commands (separated by two spaces)
+                on a new line and reprint the prompt with the partial text.
+          - If only one match exists, complete it (with a trailing space).
+        Note: We use the 'state' parameter only for the initial call (state==0).
         """
-        # If the user has typed new text, reset our tab press tracking.
+        # Only process for the first candidate.
+        if state > 0:
+            return None
+
+        # Reset tab count if the user typed something new.
         if text != self.last_completion_text:
             self.last_completion_text = text
             self.tab_press_count = 0
             self.last_tab_matches = self.get_matches(text)
 
-        # If there are multiple matches, we implement the two-step behavior.
-        if len(self.last_tab_matches) > 1:
+        matches = self.last_tab_matches
+
+        if not matches:
+            return None
+
+        # If exactly one match exists, complete it fully.
+        if len(matches) == 1:
+            return matches[0] + " "
+
+        # For multiple matches, first compute the longest common prefix.
+        lcp = self.longest_common_prefix(matches)
+        if len(lcp) > len(text):
+            # There is an auto-completion extension available.
+            return lcp
+        else:
+            # The longest common prefix is exactly what the user typed.
+            # Use a two-tab behavior: first press rings the bell, second press lists options.
             if self.tab_press_count == 0:
-                # First Tab press: ring the bell and do no completion.
                 self.tab_press_count = 1
                 sys.stdout.write('\a')
                 sys.stdout.flush()
-                return None
-            elif self.tab_press_count == 1:
-                # Second Tab press: print all matches on a new line.
-                print()  # move to a new line
-                print("  ".join(self.last_tab_matches))
-                # Reprint prompt with the current partial text.
+            else:
+                print()  # Move to a new line.
+                print("  ".join(matches))
+                # Reprint the prompt with the current text.
                 print("$ " + text, end="", flush=True)
-                # Reset counter so further Tab presses work as expected.
                 self.tab_press_count = 0
-                return None
-            # In this design we do not iterate through matches one-by-one.
-            return None
-
-        # If there is only one match (or none), let readline do its normal job.
-        try:
-            return self.last_tab_matches[state] + " "
-        except IndexError:
             return None
 
     def find_executable(self, executable: str) -> Optional[str]:
@@ -152,13 +175,11 @@ class Shell:
             if command.stdout_redirect:
                 mode, filepath = command.stdout_redirect
                 stdout = open(filepath, mode)
-
             if command.stderr_redirect:
                 mode, filepath = command.stderr_redirect
                 stderr = open(filepath, mode)
         except Exception as e:
             print(f"Redirection error: {e}", file=self.original_stderr)
-
         return stdout, stderr
 
     def cleanup_redirection(self, stdout: TextIO, stderr: TextIO):
@@ -171,20 +192,18 @@ class Shell:
         try:
             executable_path = self.find_executable(command.command)
             if not executable_path:
-                executable_path = command.command  # Try using the command as-is
-            executable_name = os.path.basename(executable_path)    
+                executable_path = command.command  # Try using the command as-is.
+            executable_name = os.path.basename(executable_path)
             process = subprocess.run(
                 [executable_path] + command.args,
                 stdout=stdout if stdout != self.original_stdout else subprocess.PIPE,
                 stderr=stderr if stderr != self.original_stderr else subprocess.PIPE,
                 text=True
             )
-            
             if process.stdout and stdout == self.original_stdout:
                 print(process.stdout.replace(executable_path, executable_name), end='', file=stdout)
             if process.stderr and stderr == self.original_stderr:
                 print(process.stderr.replace(executable_path, executable_name), end='', file=stderr)
-                
         except FileNotFoundError:
             print(f"{command.command}: command not found", file=stderr)
         except Exception as e:
@@ -232,17 +251,14 @@ class Shell:
                 sys.stdout.write("$ ")
                 sys.stdout.flush()
                 command_line = input().strip()
-                
                 if not command_line:
                     continue
 
                 command = self.parse_command(command_line)
-                
                 if command.command == "exit":
                     break
 
                 stdout, stderr = self.setup_redirection(command)
-                
                 try:
                     if command.command in self.builtins:
                         self.execute_builtin(command, stdout, stderr)
@@ -250,7 +266,6 @@ class Shell:
                         self.execute_external(command, stdout, stderr)
                 finally:
                     self.cleanup_redirection(stdout, stderr)
-
             except EOFError:
                 break
             except KeyboardInterrupt:
