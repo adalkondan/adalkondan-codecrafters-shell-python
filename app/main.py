@@ -19,6 +19,7 @@ class Shell:
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
         self.builtins = {"echo", "exit", "type", "pwd", "cd"}
+        self.last_tab_matches = None
         self.setup_completion()
         self._cache_executables()
 
@@ -42,25 +43,47 @@ class Shell:
         readline.set_completer(self.complete)
         readline.set_completer_delims(' \t\n;')
 
+    def get_matches(self, text: str) -> List[str]:
+        """Get all matching commands for the given text"""
+        builtin_matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
+        executable_matches = [cmd for cmd in self.executables if cmd.startswith(text)]
+        return sorted(builtin_matches + executable_matches)
+
     def complete(self, text: str, state: int) -> Optional[str]:
         """Completion function for readline"""
         buffer = readline.get_line_buffer()
         cmd_start = buffer[:readline.get_begidx()]
         
-        # If we're at the start of the line or completing the command
+        # Only complete at the start of the line
         if not cmd_start.strip():
-            # First try builtins
-            builtin_matches = [cmd + ' ' for cmd in self.builtins if cmd.startswith(text)]
-            # Then try executables
-            executable_matches = [cmd + ' ' for cmd in self.executables if cmd.startswith(text)]
-            # Combine matches
-            matches = builtin_matches + executable_matches
+            matches = self.get_matches(text)
             
-            try:
-                return matches[state]
-            except IndexError:
+            # No matches
+            if not matches:
                 return None
                 
+            # Single match
+            if len(matches) == 1:
+                return matches[0] + ' '
+                
+            # Multiple matches
+            if state == 0:
+                # First tab press - store matches and ring bell
+                if matches != self.last_tab_matches:
+                    self.last_tab_matches = matches
+                    sys.stdout.write('\a')
+                    sys.stdout.flush()
+                    return None
+                # Second tab press - display matches
+                else:
+                    print('\n' + '  '.join(matches))
+                    print(f'\n$ {text}', end='')
+                    sys.stdout.flush()
+                    self.last_tab_matches = None
+                    return None
+                    
+            return None
+        
         return None
 
     def find_executable(self, executable: str) -> Optional[str]:
