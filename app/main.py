@@ -51,42 +51,26 @@ class Shell:
 
     def complete(self, text: str, state: int) -> Optional[str]:
         """Completion function for readline"""
-        buffer = readline.get_line_buffer()
-        line = buffer.split()
-        
-        if not line or buffer.endswith(' '):
-            return None
-
-        if len(line) == 1:
-            matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
-            matches.extend([exe for exe in self.executables if exe.startswith(text)])
-            matches = sorted(set(matches)) 
-            if state < len(matches):
-                return matches[state] + ' '  # Add a space after the completed command
-            elif state == len(matches):
-                # If there are multiple matches, display them
-                if len(matches) > 1:
-                    print("\n" + "  ".join(matches))
-                    readline.redisplay()
-                return None
-        return None
-    def run(self):
-        while True:
-            try:
-                command_line = input("$ ")
-                if command_line.strip() == "":
-                    continue
-                command = self.parse_command(command_line)
-                if command.command in self.builtins:
-                    self.execute_builtin(command, self.original_stdout, self.original_stderr)
+        if state == 0:
+            matches = self.get_matches(text)
+            if len(matches) > 1:
+                if self.last_tab_matches == matches:
+                    # Second tab press: display matches
+                    print()
+                    print('  '.join(matches))
+                    self.last_tab_matches = None
                 else:
-                    self.execute_external(command, self.original_stdout, self.original_stderr)
-            except KeyboardInterrupt:
-                print("\n", end='')
-                continue
-            except Exception as e:
-                print(f"Shell error: {e}", file=sys.stderr)
-        
+                    # First tab press: ring bell
+                    self.last_tab_matches = matches
+                    sys.stdout.write('\a')
+                    sys.stdout.flush()
+                return None
+            elif len(matches) == 1:
+                return matches[0] + ' '
+            self.last_tab_matches = None
+            return None
+        return None
+
     def find_executable(self, executable: str) -> Optional[str]:
         """Find the full path of an executable in PATH."""
         for path in os.environ["PATH"].split(os.pathsep):
