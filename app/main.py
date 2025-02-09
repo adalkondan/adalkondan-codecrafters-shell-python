@@ -36,7 +36,7 @@ class Shell:
         if not cmd_start.strip():
             matches = [cmd for cmd in self.builtins if cmd.startswith(text)]
             try:
-                return matches[state]
+                return matches[state] + " "
             except IndexError:
                 return None
                 
